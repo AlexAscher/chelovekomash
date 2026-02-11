@@ -29,15 +29,7 @@ urlpatterns = [
     path("api/docs/", SpectacularSwaggerView.as_view(url_name="schema")),
 
     path("api/", include(router.urls)),
+    path("api/users/", include("users.urls")),
 ]
 
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
-from rest_framework_simplejwt.views import (
-    TokenObtainPairView,
-    TokenRefreshView,
-)
-
-urlpatterns = [
-    path("api/token/", TokenObtainPairView.as_view()),
-    path("api/token/refresh/", TokenRefreshView.as_view()),
-]

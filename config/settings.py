@@ -39,9 +39,11 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
 
     'rest_framework',
+    'rest_framework_simplejwt',
     'drf_spectacular',
     'django_filters',
 
+    'users',
     'shop',
 ]
 
@@ -111,18 +113,16 @@ REST_FRAMEWORK = {
     ],
     "DEFAULT_PAGINATION_CLASS": "rest_framework.pagination.PageNumberPagination",
     "PAGE_SIZE": 10,
+    "DEFAULT_AUTHENTICATION_CLASSES": (
+        "rest_framework_simplejwt.authentication.JWTAuthentication",
+    ),
 }
+
 SPECTACULAR_SETTINGS = {
     "TITLE": "Shop API",
     "DESCRIPTION": "Test shop",
     "VERSION": "1.0.0",
     "COMPONENT_SPLIT_REQUEST": True,
-}
-
-REST_FRAMEWORK = {
-    "DEFAULT_AUTHENTICATION_CLASSES": (
-        "rest_framework_simplejwt.authentication.JWTAuthentication",
-    ),
 }
 
 SIMPLE_JWT = {
