@@ -11,6 +11,7 @@ from shop.views import (
     BrandViewSet,
     ProductViewSet,
     ProductImageViewSet,
+    OrderViewSet,
 )
 
 from django.conf import settings
@@ -21,6 +22,7 @@ router.register("categories", CategoryViewSet)
 router.register("brands", BrandViewSet)
 router.register("products", ProductViewSet)
 router.register("images", ProductImageViewSet)
+router.register("orders", OrderViewSet, basename="order")
 
 urlpatterns = [
     path("admin/", admin.site.urls),
