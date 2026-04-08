@@ -3,7 +3,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from .models import User
-from .serializers import RegisterSerializer, UserSerializer, AdminUserSerializer
+from .serializers import RegisterSerializer, UserSerializer, AdminUserSerializer, AdminCreateUserSerializer
 from shop.permissions import IsAdmin
 
 
@@ -25,12 +25,16 @@ class ProfileView(generics.RetrieveUpdateAPIView):
         return self.request.user
 
 
-class UserListView(generics.ListAPIView):
-    """Список всех пользователей (только для администратора)."""
+class UserListView(generics.ListCreateAPIView):
+    """Список всех пользователей / создание нового (только для администратора)."""
 
     queryset = User.objects.all().order_by("id")
-    serializer_class = AdminUserSerializer
     permission_classes = [permissions.IsAuthenticated, IsAdmin]
+
+    def get_serializer_class(self):
+        if self.request.method == "POST":
+            return AdminCreateUserSerializer
+        return AdminUserSerializer
 
 
 class UserDetailView(generics.RetrieveUpdateDestroyAPIView):

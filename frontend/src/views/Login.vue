@@ -59,7 +59,13 @@ async function login() {
     })
     localStorage.setItem('access_token', data.access)
     localStorage.setItem('refresh_token', data.refresh)
-    router.push('/products')
+    // Загружаем профиль, чтобы сохранить роль
+    const profile = await axios.get('/api/users/profile/', {
+      headers: { Authorization: `Bearer ${data.access}` },
+    })
+    localStorage.setItem('user_role', profile.data.role)
+    localStorage.setItem('user_name', profile.data.username)
+    router.push('/catalog')
     window.location.reload()
   } catch {
     error.value = 'Неверный логин или пароль'
