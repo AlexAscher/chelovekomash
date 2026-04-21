@@ -81,11 +81,28 @@
     <v-snackbar v-model="snack" :color="snackColor" timeout="3000">
       {{ snackText }}
     </v-snackbar>
+
+    <!-- Уведомление менеджера о новом заказе -->
+    <v-snackbar
+      v-model="orderSnack"
+      color="blue-darken-2"
+      timeout="8000"
+      location="top right"
+      multi-line
+    >
+      <v-icon start>mdi-bell</v-icon>
+      <strong>Новый заказ #{{ orderNotification.order_id }}</strong><br />
+      Покупатель: {{ orderNotification.user }}<br />
+      Сумма: {{ orderNotification.total }} ₽
+      <template #actions>
+        <v-btn variant="text" @click="orderSnack = false">Закрыть</v-btn>
+      </template>
+    </v-snackbar>
   </v-app>
 </template>
 
 <script setup>
-import { ref, computed, provide } from 'vue'
+import { ref, computed, provide, onMounted, onUnmounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
 
 const router = useRouter()
@@ -113,6 +130,41 @@ function showSnack(text, color = 'success') {
 }
 
 provide('showSnack', showSnack)
+
+// ── WebSocket: уведомления о заказах для менеджеров/админов ──
+const orderSnack = ref(false)
+const orderNotification = ref({ order_id: '', user: '', total: '' })
+let ws = null
+
+function connectWS() {
+  const role = localStorage.getItem('user_role')
+  if (!['admin', 'manager'].includes(role)) return
+  if (ws) ws.close()
+  ws = new WebSocket(`ws://${location.host}/ws/orders/`)
+  ws.onmessage = (event) => {
+    orderNotification.value = JSON.parse(event.data)
+    orderSnack.value = true
+  }
+  ws.onclose = () => {
+    // переподключение через 3 сек при обрыве
+    setTimeout(() => {
+      if (isLoggedIn.value) connectWS()
+    }, 3000)
+  }
+}
+
+onMounted(() => {
+  if (isLoggedIn.value) connectWS()
+})
+
+watch(isLoggedIn, (val) => {
+  if (val) connectWS()
+  else if (ws) { ws.close(); ws = null }
+})
+
+onUnmounted(() => {
+  if (ws) ws.close()
+})
 
 function logout() {
   localStorage.removeItem('access_token')

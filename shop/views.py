@@ -1,6 +1,8 @@
 from rest_framework import viewsets, filters, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
+from channels.layers import get_channel_layer
+from asgiref.sync import async_to_sync
 from .models import Category, Brand, Product, ProductImage, Order
 from .serializers import (
     CategorySerializer,
@@ -61,6 +63,23 @@ class OrderViewSet(viewsets.ReadOnlyModelViewSet):
         serializer = CreateOrderSerializer(data=request.data, context={"request": request})
         serializer.is_valid(raise_exception=True)
         order = serializer.save()
+
+        # Уведомление менеджерам через WebSocket
+        channel_layer = get_channel_layer()
+        notification = {
+            "order_id": order.id,
+            "user": request.user.username,
+            "total": str(order.total_price),
+            "items": [
+                {"product": item.product.name, "quantity": item.quantity}
+                for item in order.items.all()
+            ],
+        }
+        async_to_sync(channel_layer.group_send)(
+            "managers",
+            {"type": "order_notification", "data": notification},
+        )
+
         return Response(OrderSerializer(order).data, status=status.HTTP_201_CREATED)
 
     @action(detail=True, methods=["post"])

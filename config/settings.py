@@ -46,7 +46,16 @@ INSTALLED_APPS = [
 
     'users',
     'shop',
+    'channels',
 ]
+
+ASGI_APPLICATION = 'config.asgi.application'
+
+CHANNEL_LAYERS = {
+    'default': {
+        'BACKEND': 'channels.layers.InMemoryChannelLayer',
+    },
+}
 
 
 MIDDLEWARE = [
